@@ -1,0 +1,42 @@
+name: Deploy to Render
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Build Docker image
+      run: docker build -t visiontech-api .
+    
+    - name: Run tests in Docker
+      run: |
+        docker run --rm visiontech-api pytest --cov=. --cov-report=term
+    
+    - name: Check Docker image health
+      run: |
+        docker run -d --name test-container -p 8000:8000 visiontech-api
+        sleep 5
+        curl --fail http://localhost:8000/health || exit 1
+        docker stop test-container
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - name: Deploy to Render
+      run: |
+        curl -X POST ${{ secrets.RENDER_DEPLOY_HOOK }}
+      env:
+        RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
