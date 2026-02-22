@@ -49,6 +49,7 @@ staticfiles/
 
 # Django local settings
 local_settings.py
+docker-compose_dev.yml
 
 # Environment variables
 .env
