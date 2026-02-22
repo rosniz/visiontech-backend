@@ -6,9 +6,9 @@ from .models import Service
 class ServiceAdmin(admin.ModelAdmin):
     """Interface d'administration simple pour les services"""
     
-    list_display = ['titre', 'client', 'categorie', 'statut', 'ordre', 'lien', 'created_at']
-    list_filter = ['categorie', 'statut', 'created_at']
-    list_editable = ['ordre', 'statut', 'categorie']
+    list_display = ['nom', 'prix_a_partir_de', 'duree_estimee', 'est_actif', 'ordre', 'created_at']
+    list_filter = ['est_actif', 'created_at']
+    list_editable = ['ordre', 'est_actif']
     search_fields = ['nom', 'description_courte', 'description']
     ordering = ['ordre', '-created_at']
     
