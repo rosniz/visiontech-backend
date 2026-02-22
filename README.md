@@ -1,264 +1,318 @@
-# VISIONTECH Backend API
+# 🚀 VisionTech API
 
-Backend RESTful API pour le site web de VISIONTECH, construit avec Django REST Framework. Ce projet fournit les endpoints pour gérer les services, formations et réalisations de l'entreprise.
+API REST complète pour le site VisionTech développée avec Django Rest Framework, PostgreSQL et Docker.
 
-## 🚀 Technologies
+## 📋 Table des matières
 
-- **Framework**: Django 4.2+ & Django REST Framework
-- **Base de données**: PostgreSQL
-- **Containerisation**: Docker & Docker Compose
+- [Fonctionnalités](#fonctionnalités)
+- [Technologies](#technologies)
+- [Prérequis](#prérequis)
+- [Installation](#installation)
+- [Configuration](#configuration)
+- [Utilisation](#utilisation)
+- [Architecture](#architecture)
+- [API Endpoints](#api-endpoints)
+- [Documentation Swagger](#documentation-swagger)
+
+## ✨ Fonctionnalités
+
+- ✅ CRUD complet pour Formations, Services, Réalisations et Contact
+- ✅ API REST versionnée (v1)
+- ✅ Upload d'images via Cloudinary
+- ✅ Documentation automatique avec Swagger/OpenAPI
+- ✅ PostgreSQL en production
+- ✅ Architecture Dockerisée
+- ✅ CORS configuré pour https://visiontech.vision
+- ✅ Interface d'administration Django
+- ✅ Filtrage et recherche avancés
+
+## 🛠 Technologies
+
+- **Backend**: Django 5.0, Django Rest Framework 3.14
+- **Base de données**: PostgreSQL 16
+- **Stockage images**: Cloudinary
+- **Conteneurisation**: Docker & Docker Compose
+- **Documentation**: drf-yasg (Swagger/OpenAPI)
 - **Serveur**: Gunicorn
-- **Déploiement**: Render
-- **Documentation API**: drf-yasg (Swagger)
 
-## 📋 Prérequis
+## 📦 Prérequis
 
-- Python 3.11+
-- PostgreSQL 15+
-- Docker & Docker Compose (optionnel mais recommandé)
+- Docker et Docker Compose installés
+- Compte Cloudinary (gratuit)
 - Git
 
-## 🏗️ Structure du Projet
+## 🚀 Installation
 
-```
-visiontech-backend/
-├── apps/
-│   ├── services/          # Gestion des services offerts
-│   ├── formations/        # Gestion des formations
-│   └── realisations/      # Gestion du portfolio/réalisations
-├── config/
-│   ├── settings/          # Configurations (base, dev, prod)
-│   ├── urls.py           # Routes principales
-│   └── wsgi.py           # Configuration WSGI
-├── docker/
-│   ├── Dockerfile        # Image Docker
-│   └── docker-compose.yml # Orchestration des services
-├── requirements/
-│   ├── base.txt          # Dépendances de base
-│   ├── development.txt   # Dépendances de développement
-│   └── production.txt    # Dépendances de production
-├── media/                # Fichiers uploadés
-├── static/               # Fichiers statiques
-├── .env.example          # Template des variables d'environnement
-├── .gitignore           # Fichiers à ignorer par Git
-├── manage.py            # Script de gestion Django
-├── README.md            # Ce fichier
-└── render.yaml          # Configuration pour Render
-```
+### Démarrage rapide (2 minutes)
 
-## 🛠️ Installation
-
-### Option 1: Avec Docker (Recommandé)
-
-1. **Cloner le repository**
 ```bash
-git clone https://github.com/rosniz/visiontech-backend.git
-cd visiontech-backend
-```
+# 1. Décompresser le projet
+unzip visiontech_api.zip
+cd visiontech_api
 
-2. **Créer le fichier .env**
-```bash
+# 2. Configurer l'environnement
 cp .env.example .env
-# Éditer .env avec vos valeurs
-```
+nano .env  # Ajoutez vos identifiants Cloudinary
 
-3. **Lancer avec Docker Compose**
-```bash
-cd docker
+# 3. Lancer (migrations automatiques)
 docker-compose up --build
 ```
 
-4. **Créer un superutilisateur**
+**Ou utilisez le script de démarrage:**
+
+```bash
+chmod +x start.sh
+./start.sh
+```
+
+L'application sera accessible sur http://localhost:8000
+
+**Les migrations et fichiers statiques sont appliqués automatiquement au démarrage!**
+
+### Créer un superutilisateur
+
 ```bash
 docker-compose exec web python manage.py createsuperuser
 ```
 
-L'API sera accessible sur `http://localhost:8000`
+- **API**: http://localhost:8000/api/v1/
+- **Admin**: http://localhost:8000/admin/
+- **Swagger**: http://localhost:8000/swagger/
+- **ReDoc**: http://localhost:8000/redoc/
 
-### Option 2: Installation Locale
+## ⚙️ Configuration
 
-1. **Cloner le repository**
-```bash
-git clone https://github.com/rosniz/visiontech-backend.git
-cd visiontech-backend
-```
+### Cloudinary
 
-2. **Créer et activer l'environnement virtuel**
-```bash
-python -m venv venv
-source venv/bin/activate  # Sur Windows: venv\Scripts\activate
-```
+1. Créez un compte sur [Cloudinary](https://cloudinary.com)
+2. Récupérez vos identifiants dans le Dashboard
+3. Ajoutez-les dans le fichier `.env`
 
-3. **Installer les dépendances**
-```bash
-pip install -r requirements/development.txt
-```
+### CORS
 
-4. **Configurer les variables d'environnement**
-```bash
-cp .env.example .env
-# Éditer .env avec vos valeurs
-```
-
-5. **Créer la base de données PostgreSQL**
-```bash
-createdb visiontech_db
-```
-
-6. **Appliquer les migrations**
-```bash
-python manage.py migrate
-```
-
-7. **Créer un superutilisateur**
-```bash
-python manage.py createsuperuser
-```
-
-8. **Lancer le serveur de développement**
-```bash
-python manage.py runserver
-```
-
-L'API sera accessible sur `http://localhost:8000`
-
-## 📚 API Endpoints
-
-### Services
-- `GET /api/services/` - Liste tous les services
-- `POST /api/services/` - Créer un nouveau service
-- `GET /api/services/{id}/` - Détails d'un service
-- `PUT /api/services/{id}/` - Mettre à jour un service
-- `DELETE /api/services/{id}/` - Supprimer un service
-
-### Formations
-- `GET /api/formations/` - Liste toutes les formations
-- `POST /api/formations/` - Créer une nouvelle formation
-- `GET /api/formations/{id}/` - Détails d'une formation
-- `PUT /api/formations/{id}/` - Mettre à jour une formation
-- `DELETE /api/formations/{id}/` - Supprimer une formation
-
-### Réalisations
-- `GET /api/realisations/` - Liste toutes les réalisations
-- `POST /api/realisations/` - Créer une nouvelle réalisation
-- `GET /api/realisations/{id}/` - Détails d'une réalisation
-- `PUT /api/realisations/{id}/` - Mettre à jour une réalisation
-- `DELETE /api/realisations/{id}/` - Supprimer une réalisation
-
-## 📖 Documentation API
-
-La documentation interactive Swagger est disponible à :
-- **Swagger UI**: `http://localhost:8000/swagger/`
-- **ReDoc**: `http://localhost:8000/redoc/`
-
-## 🧪 Tests
-
-```bash
-# Lancer tous les tests
-python manage.py test
-
-# Avec coverage
-pytest --cov=apps
-
-# Tests d'une application spécifique
-python manage.py test apps.services
-```
-
-## 🔧 Commandes Utiles
-
-```bash
-# Créer des migrations
-python manage.py makemigrations
-
-# Appliquer les migrations
-python manage.py migrate
-
-# Collecter les fichiers statiques
-python manage.py collectstatic
-
-# Créer un superutilisateur
-python manage.py createsuperuser
-
-# Lancer le shell Django
-python manage.py shell
-
-# Vider la base de données
-python manage.py flush
-```
-
-## 🚢 Déploiement sur Render
-
-1. **Pousser le code sur GitHub**
-```bash
-git add .
-git commit -m "Ready for deployment"
-git push origin main
-```
-
-2. **Connecter à Render**
-   - Aller sur [render.com](https://render.com)
-   - Connecter votre repository GitHub
-   - Render détectera automatiquement `render.yaml`
-
-3. **Configurer les variables d'environnement**
-   - `SECRET_KEY`: Votre clé secrète Django
-   - `DEBUG`: False
-   - `ALLOWED_HOSTS`: Votre domaine Render
-   - Les autres variables seront configurées automatiquement
-
-4. **Déployer**
-   - Render construira et déploiera automatiquement
-   - L'URL sera fournie après le déploiement
-
-## 🔐 Variables d'Environnement
-
-Créer un fichier `.env` basé sur `.env.example` :
+Pour autoriser d'autres origines, modifiez `CORS_ALLOWED_ORIGINS` dans `.env` :
 
 ```env
-DEBUG=True
-SECRET_KEY=your-secret-key-here
-ALLOWED_HOSTS=localhost,127.0.0.1
-
-DATABASE_URL=postgresql://user:password@localhost:5432/visiontech_db
-
-CORS_ALLOWED_ORIGINS=http://localhost:3000,http://localhost:5173
+CORS_ALLOWED_ORIGINS=https://visiontech.vision,https://www.visiontech.vision,http://localhost:3000
 ```
 
-## 🤝 Contribution
+## 📖 Utilisation
 
-1. Fork le projet
-2. Créer une branche pour votre fonctionnalité (`git checkout -b feature/AmazingFeature`)
-3. Commit vos changements (`git commit -m 'Add some AmazingFeature'`)
-4. Push vers la branche (`git push origin feature/AmazingFeature`)
-5. Ouvrir une Pull Request
+### Commandes Docker
 
-## 📝 Conventions de Code
+Voir le fichier [commands.md](commands.md) pour toutes les commandes.
 
-- Suivre PEP 8 pour le style Python
-- Utiliser des noms de variables descriptifs en français ou anglais
-- Commenter le code complexe
-- Écrire des tests pour les nouvelles fonctionnalités
+### Exemples d'utilisation de l'API
 
-## 🐛 Rapport de Bugs
+#### Créer une formation
 
-Pour signaler un bug, créer une issue sur GitHub avec :
-- Description du bug
-- Étapes pour reproduire
-- Comportement attendu vs comportement actuel
-- Captures d'écran si applicable
+```bash
+curl -X POST http://localhost:8000/api/v1/formations/ \
+  -H "Content-Type: application/json" \
+  -d '{
+    "titre": "Formation Django",
+    "description": "Apprenez Django de A à Z",
+    "prix": "50000",
+    "image": "<upload-via-cloudinary>"
+  }'
+```
 
-## 📄 Licence
+#### Lister toutes les formations
 
-Ce projet est privé et propriétaire de VISIONTECH.
+```bash
+curl http://localhost:8000/api/v1/formations/
+```
 
-## 👥 Auteurs
+#### Rechercher des formations
 
-- **VISIONTECH Team** - [GitHub](https://github.com/rosniz)
+```bash
+curl "http://localhost:8000/api/v1/formations/?search=Django"
+```
 
-## 📞 Contact
+#### Envoyer un message de contact
 
-Pour toute question, contactez l'équipe VISIONTECH.
+```bash
+curl -X POST http://localhost:8000/api/v1/contact/ \
+  -H "Content-Type: application/json" \
+  -d '{
+    "nom": "Jean Dupont",
+    "email": "jean@example.com",
+    "message": "Je souhaite plus d'informations"
+  }'
+```
 
----
+## 🏗 Architecture
 
-**Note**: Ce projet est en cours de développement actif. Les fonctionnalités peuvent changer.
+```
+visiontech_api/
+├── core/                      # Configuration principale Django
+│   ├── __init__.py
+│   ├── settings.py           # Paramètres Django
+│   ├── urls.py               # URLs principales
+│   ├── wsgi.py
+│   └── asgi.py
+├── apps/                      # Applications Django
+│   ├── formations/           # App formations
+│   │   ├── models.py         # Modèle Formation
+│   │   ├── serializers.py    # Serializer DRF
+│   │   ├── views.py          # ViewSet API
+│   │   ├── urls.py
+│   │   └── admin.py
+│   ├── services/             # App services
+│   ├── realisations/         # App réalisations
+│   └── contact/              # App contact
+├── Dockerfile                 # Image Docker
+├── docker-compose.yml         # Orchestration
+├── requirements.txt           # Dépendances Python
+├── .env.example              # Template variables d'env
+├── manage.py
+├── README.md
+└── commands.md
+```
+
+### Modèles de données
+
+#### Formation
+- `titre`: CharField
+- `description`: TextField
+- `image`: CloudinaryField
+- `prix`: DecimalField
+- `created_at`: DateTimeField
+
+#### Service
+- `nom`: CharField
+- `description`: TextField
+- `image`: CloudinaryField
+- `created_at`: DateTimeField
+
+#### Realisation
+- `titre`: CharField
+- `description`: TextField
+- `image`: CloudinaryField
+- `lien`: URLField (optionnel)
+- `created_at`: DateTimeField
+
+#### Contact
+- `nom`: CharField
+- `email`: EmailField
+- `message`: TextField
+- `date`: DateTimeField
+- `lu`: BooleanField
+
+## 🔗 API Endpoints
+
+### Formations
+- `GET /api/v1/formations/` - Liste toutes les formations
+- `POST /api/v1/formations/` - Créer une formation
+- `GET /api/v1/formations/{id}/` - Détails d'une formation
+- `PUT /api/v1/formations/{id}/` - Modifier une formation
+- `PATCH /api/v1/formations/{id}/` - Modification partielle
+- `DELETE /api/v1/formations/{id}/` - Supprimer une formation
+
+### Services
+- `GET /api/v1/services/` - Liste tous les services
+- `POST /api/v1/services/` - Créer un service
+- `GET /api/v1/services/{id}/` - Détails d'un service
+- `PUT /api/v1/services/{id}/` - Modifier un service
+- `PATCH /api/v1/services/{id}/` - Modification partielle
+- `DELETE /api/v1/services/{id}/` - Supprimer un service
+
+### Réalisations
+- `GET /api/v1/realisations/` - Liste toutes les réalisations
+- `POST /api/v1/realisations/` - Créer une réalisation
+- `GET /api/v1/realisations/{id}/` - Détails d'une réalisation
+- `PUT /api/v1/realisations/{id}/` - Modifier une réalisation
+- `PATCH /api/v1/realisations/{id}/` - Modification partielle
+- `DELETE /api/v1/realisations/{id}/` - Supprimer une réalisation
+
+### Contact
+- `GET /api/v1/contact/` - Liste tous les messages
+- `POST /api/v1/contact/` - Envoyer un message
+- `GET /api/v1/contact/{id}/` - Détails d'un message
+- `PUT /api/v1/contact/{id}/` - Modifier un message
+- `DELETE /api/v1/contact/{id}/` - Supprimer un message
+- `POST /api/v1/contact/{id}/mark_as_read/` - Marquer comme lu
+- `POST /api/v1/contact/{id}/mark_as_unread/` - Marquer comme non lu
+
+### Paramètres de requête disponibles
+
+- `?search=terme` - Recherche textuelle
+- `?ordering=field` - Tri (`-field` pour descendant)
+- `?page=2` - Pagination
+- `?lu=true` - Filtrer les messages lus (Contact uniquement)
+
+## 📚 Documentation Swagger
+
+Accédez à la documentation interactive complète sur :
+
+- **Swagger UI**: http://localhost:8000/swagger/
+- **ReDoc**: http://localhost:8000/redoc/
+
+La documentation permet de :
+- ✅ Visualiser tous les endpoints
+- ✅ Tester directement les requêtes
+- ✅ Voir les schémas de données
+- ✅ Télécharger la spécification OpenAPI
+
+## 🔒 Sécurité
+
+### En production
+
+1. **Désactiver DEBUG**
+```env
+DEBUG=False
+```
+
+2. **Utiliser une SECRET_KEY forte**
+```bash
+python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
+```
+
+3. **Configurer ALLOWED_HOSTS**
+```env
+ALLOWED_HOSTS=visiontech.vision,www.visiontech.vision
+```
+
+4. **Utiliser HTTPS**
+```python
+# Dans settings.py
+SECURE_SSL_REDIRECT = True
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+```
+
+## 🐛 Troubleshooting
+
+### Erreur de connexion à la base de données
+
+```bash
+# Vérifier que PostgreSQL est démarré
+docker-compose ps
+
+# Voir les logs
+docker-compose logs db
+```
+
+### Erreur Cloudinary
+
+Vérifiez vos identifiants dans `.env` et que votre compte est actif.
+
+### Port 8000 déjà utilisé
+
+```bash
+# Modifier le port dans docker-compose.yml
+ports:
+  - "8001:8000"  # Utiliser 8001 au lieu de 8000
+```
+
+## 📝 Licence
+
+MIT
+
+## 👨‍💻 Auteur
+
+VisionTech - API développée avec ❤️ par un ingénieur backend senior
+
+## 🤝 Support
+
+Pour toute question ou problème, contactez : contact@visiontech.vision

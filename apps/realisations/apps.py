@@ -2,4 +2,6 @@ from django.apps import AppConfig
 
 
 class RealisationsConfig(AppConfig):
-    name = 'realisations'
+    default_auto_field = 'django.db.models.BigAutoField'
+    name = 'apps.realisations'
+    verbose_name = 'Réalisations'
