@@ -1,27 +1,50 @@
-FROM python:3.11-slim
+# ─── Stage 1 : Build des dépendances ───────────────────────────────────────
+FROM python:3.11-slim AS builder
 
-# Variables d'environnement
-ENV PYTHONUNBUFFERED=1
-ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
 
-# Répertoire de travail
 WORKDIR /app
 
-# Installer les dépendances système
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
-    postgresql-client \
+    libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Copier et installer les dépendances Python
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --user --no-cache-dir -r requirements.txt
 
-# Copier le projet
+# ─── Stage 2 : Image finale légère ─────────────────────────────────────────
+FROM python:3.11-slim AS final
+
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PATH=/root/.local/bin:$PATH
+
+WORKDIR /app
+
+# Uniquement les libs runtime (pas gcc)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libpq5 \
+    postgresql-client \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copier les packages Python installés depuis le builder
+COPY --from=builder /root/.local /root/.local
+
+# Copier le code source
 COPY . .
 
-# Exposer le port
+# Créer les dossiers pour les fichiers statiques et media
+RUN mkdir -p /app/staticfiles /app/media
+
 EXPOSE 8000
 
-# Commande de démarrage
-CMD ["gunicorn", "core.wsgi:application", "--bind", "0.0.0.0:8000"]
+# Healthcheck intégré dans l'image
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+    CMD curl -f http://localhost:8000/health/ || exit 1
+
+CMD ["gunicorn", "core.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "3"]

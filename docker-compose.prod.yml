@@ -1,0 +1,63 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: visiontech_db_prod
+    restart: always
+    volumes:
+      - postgres_prod_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+    # Pas de ports exposés en prod — DB accessible uniquement en interne
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - visiontech_internal
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: visiontech_web_prod
+    restart: always
+    command: >
+      sh -c "python manage.py migrate --noinput &&
+             python manage.py collectstatic --noinput &&
+             gunicorn core.wsgi:application
+               --bind 0.0.0.0:8000
+               --workers 3
+               --timeout 120
+               --access-logfile -
+               --error-logfile -"
+    volumes:
+      - static_prod:/app/staticfiles
+      - media_prod:/app/media
+    expose:
+      - "8000"   # Exposé uniquement au réseau interne (Nginx s'en charge)
+    env_file:
+      - .env.prod
+    environment:
+      - DEBUG=False
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - visiontech_internal
+      - nginx_proxy          # Réseau partagé avec Nginx reverse proxy
+
+volumes:
+  postgres_prod_data:
+  static_prod:
+  media_prod:
+
+networks:
+  visiontech_internal:
+    driver: bridge
+  nginx_proxy:
+    external: true           # Ce réseau est créé une seule fois sur le VPS
