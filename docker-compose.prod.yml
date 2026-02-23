@@ -8,18 +8,16 @@ services:
     volumes:
       - postgres_prod_data:/var/lib/postgresql/data
     environment:
-      - POSTGRES_DB=${DB_NAME}
-      - POSTGRES_USER=${DB_USER}
-      - POSTGRES_PASSWORD=${DB_PASSWORD}
-    # Pas de ports exposés en prod — DB accessible uniquement en interne
+      - POSTGRES_DB=visiontech_db
+      - POSTGRES_USER=visiontech_user
+      - POSTGRES_PASSWORD=Rosni@2025
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      test: ["CMD-SHELL", "pg_isready -U visiontech_user -d visiontech_db"]
       interval: 10s
       timeout: 5s
       retries: 5
     networks:
       - visiontech_internal
-
   web:
     build:
       context: .
