@@ -3,7 +3,7 @@ name: 🚀 Deploy to VPS
 on:
   push:
     branches:
-      - main   # Déclenché uniquement sur push vers main
+      - main
 
 jobs:
   deploy:
@@ -11,11 +11,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # ── 1. Checkout du code ─────────────────────────────────────────────
       - name: 📥 Checkout code
         uses: actions/checkout@v4
 
-      # ── 2. Connexion SSH + déploiement sur le VPS ───────────────────────
       - name: 🔐 SSH & Deploy
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -24,12 +22,13 @@ jobs:
           key:      ${{ secrets.VPS_SSH_KEY }}
           port:     22
           script: |
-            set -e  # Stoppe si une commande échoue
+            set -e
 
             echo "📂 Aller dans le dossier du projet..."
             cd /var/www/visiontech-backend
 
             echo "⬇️  Pull des dernières modifications..."
+            git reset --hard HEAD
             git pull origin main
 
             echo "🐳 Build et redémarrage des conteneurs..."
@@ -40,9 +39,7 @@ jobs:
 
             echo "✅ Déploiement terminé avec succès !"
 
-      # ── 3. Notification en cas d'échec ──────────────────────────────────
       - name: ❌ Notify on failure
         if: failure()
         run: |
           echo "Le déploiement a échoué. Vérifier les logs GitHub Actions."
-          # Tu peux ajouter ici une notification Slack, email, etc.
