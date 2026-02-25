@@ -124,8 +124,10 @@ REST_FRAMEWORK = {
 # CORS
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",  # ton front React
-    "http://localhost:3000",  # si tu as un autre front
-    "https://visiontech.vision",  # domaine production
+    'https://api.visiontech.vision',
+    'https://visiontech.vision',
+    'https://www.visiontech.vision',
+
 ]
 
 CORS_ALLOW_CREDENTIALS = True
