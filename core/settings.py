@@ -123,14 +123,20 @@ REST_FRAMEWORK = {
 
 # CORS
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",  # ton front React
+    "http://localhost:5173",
     'https://api.visiontech.vision',
     'https://visiontech.vision',
     'https://www.visiontech.vision',
-
 ]
 
 CORS_ALLOW_CREDENTIALS = True
+
+# CSRF
+CSRF_TRUSTED_ORIGINS = [
+    'https://api.visiontech.vision',
+    'https://visiontech.vision',
+    'https://www.visiontech.vision',
+]
 
 # Cloudinary
 cloudinary.config(
