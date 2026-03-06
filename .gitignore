@@ -33,3 +33,6 @@ db.sqlite3
 # OS
 .DS_Store
 Thumbs.db
+
+# Scripts locaux / one-shot
+apps/formations/insert_formations.py
