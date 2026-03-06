@@ -12,9 +12,21 @@ services:
       - POSTGRES_USER=${DB_USER}
       - POSTGRES_PASSWORD=${DB_PASSWORD}
     ports:
-      - "5432:5432"  # Exposé en dev pour accès direct (DBeaver, pgAdmin, etc.)
+      - "5432:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: visiontech_redis_dev
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -25,19 +37,23 @@ services:
       dockerfile: Dockerfile
     container_name: visiontech_web_dev
     restart: unless-stopped
-    command: python manage.py runserver 0.0.0.0:8000  # Hot-reload natif Django
+    # Daphne remplace runserver pour supporter HTTP + WebSocket
+    command: daphne -b 0.0.0.0 -p 8000 core.asgi:application
     volumes:
-      - .:/app                         # Mount complet pour hot-reload
+      - .:/app
       - static_dev:/app/staticfiles
       - media_dev:/app/media
     ports:
-      - "8000:8000"                    # Accès direct sans Nginx en dev
+      - "8000:8000"
     env_file:
       - .env
     environment:
       - DEBUG=True
+      - REDIS_URL=redis://redis:6379
     depends_on:
       db:
+        condition: service_healthy
+      redis:
         condition: service_healthy
 
 volumes:

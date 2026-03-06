@@ -22,18 +22,20 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    
+
     # Third party
     'rest_framework',
     'drf_yasg',
     'corsheaders',
     'cloudinary',
-    
+    'channels',          # ← AJOUT
+
     # Local apps
     'apps.formations',
     'apps.services',
     'apps.realisations',
     'apps.contact',
+    'apps.chat',         # ← AJOUT
 ]
 
 MIDDLEWARE = [
@@ -49,6 +51,22 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'core.urls'
+
+# ← AJOUT : remplace WSGI par ASGI pour Channels/WebSocket
+ASGI_APPLICATION = 'core.asgi.application'
+
+# ← AJOUT : Channel layers Redis
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            'hosts': [os.getenv('REDIS_URL', 'redis://redis:6379')],
+        },
+    },
+}
+
+# ← AJOUT : Clé Gemini
+GEMINI_API_KEY = os.getenv('GEMINI_API_KEY', '')
 
 TEMPLATES = [
     {
@@ -156,10 +174,6 @@ SWAGGER_SETTINGS = {
     'USE_SESSION_AUTH': False,
     'JSON_EDITOR': True,
     'SUPPORTED_SUBMIT_METHODS': [
-        'get',
-        'post',
-        'put',
-        'patch',
-        'delete'
+        'get', 'post', 'put', 'patch', 'delete'
     ],
 }
