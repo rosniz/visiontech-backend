@@ -206,8 +206,14 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
         if 'formations' in needed:
             try:
-                from apps.formations.models import Formation
-                formations = Formation.objects.all()[:10]
+                # Essaie les deux chemins possibles
+                try:
+                    from apps.formations.models import Formation
+                except ImportError:
+                    from formations.models import Formation
+                formations = list(Formation.objects.all()[:10])
+                import logging
+                logging.getLogger(__name__).info(f"[RAG] {len(formations)} formation(s) trouvée(s)")
                 if formations:
                     lines = ["📚 FORMATIONS DISPONIBLES :"]
                     for f in formations:
@@ -226,12 +232,18 @@ class ChatConsumer(AsyncWebsocketConsumer):
                             line += f"\n  → {f.description_courte}"
                         lines.append(line)
                     context_parts.append('\n'.join(lines))
-            except Exception:
-                pass
+                else:
+                    logging.getLogger(__name__).warning("[RAG] Aucune formation en BD")
+            except Exception as e:
+                import logging
+                logging.getLogger(__name__).error(f"[RAG] Erreur formations: {e}")
 
         if 'services' in needed:
             try:
-                from apps.services.models import Service
+                try:
+                    from apps.services.models import Service
+                except ImportError:
+                    from services.models import Service
                 services = Service.objects.filter(est_actif=True).order_by('ordre')[:8]
                 if services:
                     lines = ["🛠️ NOS SERVICES IA :"]
@@ -251,7 +263,10 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
         if 'realisations' in needed:
             try:
-                from apps.realisations.models import Realisation
+                try:
+                    from apps.realisations.models import Realisation
+                except ImportError:
+                    from realisations.models import Realisation
                 reals = Realisation.objects.filter(statut='termine').order_by('ordre')[:6]
                 if reals:
                     lines = ["🏆 NOS RÉALISATIONS :"]
@@ -276,7 +291,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         try:
             genai.configure(api_key=settings.GEMINI_API_KEY)
             model = genai.GenerativeModel(
-                model_name='gemini-2.5-flash',
+                model_name='gemini-1.5-flash',
                 system_instruction=SYSTEM_PROMPT
             )
 
