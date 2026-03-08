@@ -19,13 +19,21 @@ services:
     networks:
       - visiontech_internal
 
+  redis:
+    image: redis:7-alpine
+    container_name: visiontech_redis_prod
+    restart: always
+    networks:
+      - visiontech_internal
+
   web:
     build:
       context: .
       dockerfile: Dockerfile
     container_name: visiontech_web_prod
     restart: always
-    command: sh -c "python manage.py migrate --noinput && python manage.py collectstatic --noinput && /root/.local/bin/gunicorn core.wsgi:application --bind 0.0.0.0:8000 --workers 3 --timeout 120 --access-logfile - --error-logfile -"
+    # Daphne à la place de Gunicorn — supporte HTTP + WebSocket
+    command: sh -c "python manage.py migrate --noinput && python manage.py collectstatic --noinput && /root/.local/bin/daphne -b 0.0.0.0 -p 8000 core.asgi:application"
     volumes:
       - static_prod:/app/staticfiles
       - media_prod:/app/media
@@ -35,9 +43,12 @@ services:
       - .env.prod
     environment:
       - DEBUG=False
+      - REDIS_URL=redis://visiontech_redis_prod:6379
     depends_on:
       db:
         condition: service_healthy
+      redis:
+        condition: service_started
     networks:
       - visiontech_internal
 
