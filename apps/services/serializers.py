@@ -27,11 +27,11 @@ class ServiceSerializer(serializers.ModelSerializer):
         read_only_fields = ['created_at', 'updated_at']
     
     def get_image_url(self, obj):
-        """Retourne l'URL de l'image Cloudinary"""
         if obj.image:
-            return obj.image.url
+            request = self.context.get('request')
+            return request.build_absolute_uri(obj.image.url) if request else obj.image.url
         return None
-    
+
     def to_representation(self, instance):
         """Personnaliser la représentation pour s'assurer que points_forts est un array"""
         representation = super().to_representation(instance)
@@ -69,9 +69,9 @@ class ServiceListSerializer(serializers.ModelSerializer):
         ]
     
     def get_image_url(self, obj):
-        """Retourne l'URL de l'image Cloudinary"""
         if obj.image:
-            return obj.image.url
+            request = self.context.get('request')
+            return request.build_absolute_uri(obj.image.url) if request else obj.image.url
         return None
 
 

@@ -1,5 +1,4 @@
 from django.db import models
-from cloudinary.models import CloudinaryField
 
 
 class Realisation(models.Model):
@@ -26,7 +25,7 @@ class Realisation(models.Model):
     )
     titre = models.CharField(max_length=200, verbose_name="Titre")
     description = models.TextField(verbose_name="Description")
-    image = CloudinaryField('image', folder='realisations/', blank=True, null=True)
+    image = models.ImageField(upload_to='realisations/', blank=True, null=True)
     lien = models.URLField(
         max_length=500,
         blank=True,

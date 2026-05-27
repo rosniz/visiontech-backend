@@ -1,6 +1,5 @@
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
-from cloudinary.models import CloudinaryField
 
 
 class Service(models.Model):
@@ -16,7 +15,7 @@ class Service(models.Model):
     description = models.TextField(verbose_name="Description détaillée")
     
     # Visuel
-    image = CloudinaryField('image', folder='services/', blank=True, null=True)
+    image = models.ImageField(upload_to='services/', blank=True, null=True)
     
     # Caractéristiques
     points_forts = models.JSONField(

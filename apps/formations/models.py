@@ -1,25 +1,17 @@
 from django.db import models
-from cloudinary.models import CloudinaryField
 
 class Formation(models.Model):
     """Modèle pour les formations proposées par VisionTech"""
-    
+
     # Informations principales
     titre = models.CharField(max_length=200, verbose_name="Titre")
     sous_titre = models.CharField(max_length=300, verbose_name="Sous-titre", blank=True)
     description_courte = models.TextField(max_length=500, verbose_name="Description courte", help_text="Résumé pour la liste")
     description_complete = models.TextField(verbose_name="Description complète")
-    
-     # Médias
-    image = CloudinaryField('image', folder='formations/', blank=True, null=True)
-    syllabus = CloudinaryField(
-        'file', 
-        folder='formations/syllabus/', 
-        blank=True, 
-        null=True, 
-        resource_type='raw',
-        type='upload'  # Force le type upload (public par défaut)
-    )
+
+    # Médias
+    image = models.ImageField(upload_to='formations/', blank=True, null=True)
+    syllabus = models.FileField(upload_to='formations/syllabus/', blank=True, null=True)
     
     # Détails formation
     duree = models.CharField(max_length=100, verbose_name="Durée", blank=True, help_text="Ex: 3 mois, 40 heures")
