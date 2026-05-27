@@ -1,7 +1,6 @@
 import os
 from pathlib import Path
 from dotenv import load_dotenv
-import cloudinary
 
 # Charger les variables d'environnement
 load_dotenv()
@@ -27,8 +26,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'drf_yasg',
     'corsheaders',
-    'cloudinary',
-    'channels',          # ← AJOUT
+    'channels',
 
     # Local apps
     'apps.formations',
@@ -120,7 +118,7 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Media files
-MEDIA_URL = 'media/'
+MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 # Default primary key
@@ -155,14 +153,6 @@ CSRF_TRUSTED_ORIGINS = [
     'https://visiontech.vision',
     'https://www.visiontech.vision',
 ]
-
-# Cloudinary
-cloudinary.config(
-    cloud_name=os.getenv('CLOUDINARY_CLOUD_NAME', ''),
-    api_key=os.getenv('CLOUDINARY_API_KEY', ''),
-    api_secret=os.getenv('CLOUDINARY_API_SECRET', ''),
-    secure=True
-)
 
 # Swagger
 SWAGGER_SETTINGS = {

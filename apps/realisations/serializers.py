@@ -34,9 +34,9 @@ class RealisationSerializer(serializers.ModelSerializer):
 
 
     def get_image_url(self, obj):
-        """Retourne l'URL complète de l'image Cloudinary"""
         if obj.image:
-            return obj.image.url
+            request = self.context.get('request')
+            return request.build_absolute_uri(obj.image.url) if request else obj.image.url
         return None
 
     def get_technologies_list(self, obj):
