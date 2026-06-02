@@ -15,34 +15,34 @@ STATUT_COLORS = {
 class DemandeStageAdmin(admin.ModelAdmin):
 
     list_display  = [
-        'prenom', 'nom', 'email', 'domaine_badge',
-        'niveau_etude', 'date_debut', 'date_fin',
+        'prenom', 'nom', 'email_contact', 'type_stage_badge',
+        'domaine_badge', 'date_debut', 'date_fin',
         'statut_badge', 'created_at',
     ]
-    list_filter   = ['statut', 'domaine', 'niveau_etude', 'created_at']
-    search_fields = ['nom', 'prenom', 'email', 'etablissement']
-    readonly_fields = ['token', 'created_at', 'updated_at']
+    list_filter   = ['statut', 'type_stage', 'domaine', 'created_at']
+    search_fields = ['nom', 'prenom', 'email_contact']
+    readonly_fields = ['created_at', 'updated_at']
     ordering      = ['-created_at']
 
     fieldsets = (
         ('👤 Informations personnelles', {
-            'fields': ('prenom', 'nom', 'email', 'telephone')
+            'fields': ('user', 'prenom', 'nom', 'telephone', 'email_contact')
         }),
-        ('🎓 Formation', {
-            'fields': ('niveau_etude', 'etablissement', 'domaine')
+        ('🎓 Stage souhaité', {
+            'fields': ('type_stage', 'domaine', 'date_debut', 'date_fin')
         }),
-        ('📅 Stage souhaité', {
-            'fields': ('date_debut', 'date_fin', 'motivation', 'cv')
+        ('📄 Documents', {
+            'fields': ('cni_recto', 'cni_verso', 'carte_etudiant', 'certificat_scolarite', 'cv')
+        }),
+        ('✉️ Motivation', {
+            'fields': ('lettre_motivation',)
         }),
         ('⚙️ Gestion administrative', {
             'fields': ('statut', 'commentaire_admin'),
-            'description': (
-                'Modifiez le statut et ajoutez un message. '
-                'Un email sera automatiquement envoyé au candidat.'
-            ),
+            'description': 'Modifiez le statut et ajoutez un message. Un email sera envoyé automatiquement.',
         }),
-        ('🔐 Métadonnées', {
-            'fields': ('token', 'created_at', 'updated_at'),
+        ('🕒 Métadonnées', {
+            'fields': ('created_at', 'updated_at'),
             'classes': ('collapse',),
         }),
     )
@@ -53,13 +53,28 @@ class DemandeStageAdmin(admin.ModelAdmin):
         color = STATUT_COLORS.get(obj.statut, '#64748b')
         return format_html(
             '<span style="padding:3px 10px;border-radius:20px;background:{0}20;'
-            'color:{0};font-weight:700;font-size:12px;border:1px solid {0}40">'
-            '{1}</span>',
+            'color:{0};font-weight:700;font-size:12px;border:1px solid {0}40">{1}</span>',
             color, obj.get_statut_display()
         )
     statut_badge.short_description = 'Statut'
 
+    def type_stage_badge(self, obj):
+        colors = {
+            'vacances':         '#0ea5e9',
+            'pre_emploi':       '#8b5cf6',
+            'perfectionnement': '#10b981',
+        }
+        color = colors.get(obj.type_stage, '#64748b')
+        return format_html(
+            '<span style="padding:2px 8px;border-radius:6px;background:{0}20;'
+            'color:{0};font-size:12px;font-weight:600">{1}</span>',
+            color, obj.get_type_stage_display()
+        )
+    type_stage_badge.short_description = 'Type'
+
     def domaine_badge(self, obj):
+        if not obj.domaine:
+            return '—'
         return format_html(
             '<span style="padding:2px 8px;border-radius:6px;background:#e0f2fe;'
             'color:#0369a1;font-size:12px">{}</span>',
@@ -72,16 +87,9 @@ class DemandeStageAdmin(admin.ModelAdmin):
             super().save_model(request, obj, form, change)
             try:
                 send_status_update_email(obj)
-                self.message_user(
-                    request,
-                    f'Email de notification envoyé à {obj.email}.',
-                )
+                self.message_user(request, f'Email de notification envoyé à {obj.email_contact}.')
             except Exception as e:
-                self.message_user(
-                    request,
-                    f'Statut mis à jour mais email non envoyé : {e}',
-                    level='warning',
-                )
+                self.message_user(request, f'Statut mis à jour mais email non envoyé : {e}', level='warning')
         else:
             super().save_model(request, obj, form, change)
 
