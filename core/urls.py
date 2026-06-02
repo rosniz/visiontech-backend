@@ -29,6 +29,7 @@ urlpatterns = [
     path('api/v1/contact/', include('apps.contact.urls')),
 
     path('api/chat/', include('apps.chat.urls')),
+    path('api/v1/stages/', include('apps.stages.urls')),
     
     # Documentation Swagger
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
