@@ -96,7 +96,7 @@ def send_confirmation_email(demande):
     msg = EmailMultiAlternatives(
         subject=subject, body=text,
         from_email=settings.DEFAULT_FROM_EMAIL,
-        to=[demande.email],
+        to=[demande.email_contact],
     )
     msg.attach_alternative(html, "text/html")
     msg.send()
@@ -107,7 +107,7 @@ def send_confirmation_email(demande):
         message=(
             f"Nouvelle demande de stage :\n\n"
             f"Nom     : {demande.prenom} {demande.nom}\n"
-            f"Email   : {demande.email}\n"
+            f"Email   : {demande.email_contact}\n"
             f"Domaine : {demande.get_domaine_display()}\n"
             f"Période : {demande.date_debut} → {demande.date_fin}\n\n"
             f"Admin   : https://api.visiontech.vision/admin/stages/demandestage/{demande.pk}/change/"
@@ -195,7 +195,7 @@ def send_status_update_email(demande):
     msg = EmailMultiAlternatives(
         subject=subject, body=text,
         from_email=settings.DEFAULT_FROM_EMAIL,
-        to=[demande.email],
+        to=[demande.email_contact],
     )
     msg.attach_alternative(html, "text/html")
     msg.send()
