@@ -17,3 +17,6 @@ redis==5.0.1
 
 # ── IA Gemini ────────────────────────────────────
 google-generativeai==0.8.3
+
+# ── Auth JWT ─────────────────────────────────────
+djangorestframework-simplejwt==5.3.1
