@@ -5,6 +5,7 @@ from rest_framework.permissions import AllowAny
 from django_filters.rest_framework import DjangoFilterBackend
 from .models import Contact
 from .serializers import ContactSerializer
+from .emails import send_contact_emails
 
 
 class ContactViewSet(viewsets.ModelViewSet):
@@ -19,9 +20,17 @@ class ContactViewSet(viewsets.ModelViewSet):
     permission_classes = [AllowAny]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['lu']
-    search_fields = ['nom', 'email', 'message']
+    search_fields = ['nom', 'email', 'sujet', 'message']
     ordering_fields = ['date', 'nom']
     ordering = ['-date']
+
+    def perform_create(self, serializer):
+        instance = serializer.save()
+        try:
+            send_contact_emails(instance)
+        except Exception as e:
+            import logging
+            logging.getLogger(__name__).error(f'Contact email failed: {e}')
     
     @action(detail=True, methods=['post'])
     def mark_as_read(self, request, pk=None):

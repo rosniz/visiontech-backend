@@ -7,14 +7,7 @@ class ContactSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Contact
-        fields = [
-            'id',
-            'nom',
-            'email',
-            'message',
-            'date',
-            'lu'
-        ]
+        fields = ['id', 'nom', 'email', 'telephone', 'sujet', 'message', 'date', 'lu']
         read_only_fields = ['id', 'date', 'lu']
     
     def validate_email(self, value):
