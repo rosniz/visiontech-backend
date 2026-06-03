@@ -49,8 +49,9 @@ class MesDemandesView(generics.ListCreateAPIView):
         instance = serializer.save(user=self.request.user)
         try:
             send_confirmation_email(instance)
-        except Exception:
-            pass
+        except Exception as e:
+            import logging
+            logging.getLogger(__name__).error(f'Email confirmation failed: {e}')
 
 
 class DemandeDetailView(generics.RetrieveAPIView):
