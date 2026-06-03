@@ -2,6 +2,7 @@ from django.core.mail import EmailMultiAlternatives, send_mail
 from django.conf import settings
 
 FRONTEND_URL = getattr(settings, 'FRONTEND_URL', 'https://visiontech.vision')
+LOGO_URL     = 'https://visiontech.vision/logo.png'
 
 STATUT_LABELS = {
     'en_attente': "En attente d'examen",
@@ -23,14 +24,15 @@ def _base_html(header_content, body_content):
 <html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
 <body style="margin:0;padding:0;background:#f0f4ff;font-family:Arial,sans-serif">
   <div style="max-width:600px;margin:32px auto;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08)">
-    <div style="background:linear-gradient(135deg,#0f2b6e 0%,#1d4ed8 55%,#0ea5e9 100%);padding:28px 24px;text-align:center">
+    <div style="background:linear-gradient(135deg,#0f2b6e 0%,#1d4ed8 55%,#0ea5e9 100%);padding:24px;text-align:center">
+      <img src="{LOGO_URL}" alt="VisionTech SARL" style="height:52px;width:auto;margin-bottom:6px;display:block;margin-left:auto;margin-right:auto" />
       {header_content}
     </div>
     <div style="padding:32px 28px">{body_content}</div>
     <div style="background:#f8fafc;padding:18px 28px;text-align:center;border-top:1px solid #e2e8f0">
       <p style="color:#94a3b8;font-size:12px;margin:0">
-        © 2025 VisionTech SARL · Djemoun, Bafoussam, Cameroun<br>
-        📧 contact@visiontech.vision · 📞 +237 674 55 49 47
+        &copy; 2026 VisionTech SARL &middot; Djemoun, Bafoussam, Cameroun<br>
+        contact@visiontechsarl.com &middot; +237 674 55 49 47
       </p>
     </div>
   </div>
@@ -38,37 +40,34 @@ def _base_html(header_content, body_content):
 
 
 def send_confirmation_email(demande):
-    """Email envoyé au candidat après soumission."""
     suivi_url = f"{FRONTEND_URL}/stages/mes-demandes"
 
-    header = """
-      <h1 style="color:#fff;margin:0;font-size:22px;font-weight:800">VisionTech SARL</h1>
-      <p style="color:rgba(255,255,255,0.75);margin:6px 0 0;font-size:13px">Demande de stage reçue</p>
-    """
+    header = '<p style="color:rgba(255,255,255,0.85);margin:4px 0 0;font-size:13px">Demande de stage reçue</p>'
 
     body = f"""
-      <h2 style="color:#0f172a;font-size:19px;margin:0 0 12px">Bonjour {demande.prenom} 👋</h2>
+      <h2 style="color:#0f172a;font-size:19px;margin:0 0 12px">Bonjour {demande.prenom} &#128075;</h2>
       <p style="color:#475569;line-height:1.7;margin:0 0 20px">
-        Nous avons bien reçu votre demande de stage en
-        <strong style="color:#1d4ed8">{demande.get_domaine_display()}</strong>.
+        Nous avons bien reçu votre demande de stage.
         Notre équipe va étudier votre dossier et vous notifiera dans les plus brefs délais.
       </p>
 
       <div style="background:#f8fafc;border-radius:12px;padding:18px 20px;margin-bottom:24px;border:1px solid #e2e8f0">
-        <h3 style="color:#0f172a;margin:0 0 12px;font-size:14px;font-weight:700">📋 Récapitulatif</h3>
+        <h3 style="color:#0f172a;margin:0 0 12px;font-size:14px;font-weight:700">&#128203; Récapitulatif</h3>
         <table style="width:100%;border-collapse:collapse;font-size:14px">
           <tr>
-            <td style="padding:5px 0;color:#64748b">Domaine</td>
-            <td style="padding:5px 0;color:#0f172a;font-weight:600">{demande.get_domaine_display()}</td>
+            <td style="padding:5px 0;color:#64748b">Profil</td>
+            <td style="padding:5px 0;color:#0f172a;font-weight:600">{demande.get_profil_display()}</td>
           </tr>
           <tr>
-            <td style="padding:5px 0;color:#64748b">Type</td>
-            <td style="padding:5px 0;color:#0f172a;font-weight:600">{demande.get_type_stage_display()}</td>
+            <td style="padding:5px 0;color:#64748b">Domaine</td>
+            <td style="padding:5px 0;color:#0f172a;font-weight:600">{demande.get_domaine_display() if demande.domaine else 'Non précisé'}</td>
           </tr>
           <tr>
             <td style="padding:5px 0;color:#64748b">Période souhaitée</td>
             <td style="padding:5px 0;color:#0f172a;font-weight:600">
-              {demande.date_debut.strftime('%d/%m/%Y') if demande.date_debut else 'Non précisée'} → {demande.date_fin.strftime('%d/%m/%Y') if demande.date_fin else 'Non précisée'}
+              {demande.date_debut.strftime('%d/%m/%Y') if demande.date_debut else 'Non précisée'}
+              &rarr;
+              {demande.date_fin.strftime('%d/%m/%Y') if demande.date_fin else 'Non précisée'}
             </td>
           </tr>
         </table>
@@ -79,7 +78,7 @@ def send_confirmation_email(demande):
            style="display:inline-block;padding:14px 32px;background:linear-gradient(135deg,#1d4ed8,#0ea5e9);
                   color:#fff;text-decoration:none;border-radius:12px;font-weight:700;font-size:15px;
                   box-shadow:0 4px 18px rgba(29,78,216,0.35)">
-          🔍 Suivre ma demande
+          &#128269; Suivre ma demande
         </a>
       </div>
 
@@ -88,28 +87,28 @@ def send_confirmation_email(demande):
       </p>
     """
 
-    subject = "✅ Demande de stage reçue — VisionTech SARL"
+    subject = "&#9989; Demande de stage reçue — VisionTech SARL"
     html    = _base_html(header, body)
     text    = f"Bonjour {demande.prenom}, votre demande de stage a été reçue. Suivez-la ici : {suivi_url}"
 
     msg = EmailMultiAlternatives(
-        subject=subject, body=text,
+        subject="Demande de stage reçue — VisionTech SARL",
+        body=text,
         from_email=settings.DEFAULT_FROM_EMAIL,
         to=[demande.email_contact],
     )
     msg.attach_alternative(html, "text/html")
     msg.send()
 
-    # Notifier l'admin
     send_mail(
         subject=f"[Stage] Nouvelle demande — {demande.prenom} {demande.nom}",
         message=(
-            f"Nouvelle demande de stage :\n\n"
-            f"Nom     : {demande.prenom} {demande.nom}\n"
-            f"Email   : {demande.email_contact}\n"
-            f"Domaine : {demande.get_domaine_display()}\n"
-            f"Période : {demande.date_debut} → {demande.date_fin}\n\n"
-            f"Admin   : https://api.visiontech.vision/admin/stages/demandestage/{demande.pk}/change/"
+            f"Nouvelle demande :\n\n"
+            f"Candidat : {demande.prenom} {demande.nom}\n"
+            f"Profil   : {demande.get_profil_display()}\n"
+            f"Email    : {demande.email_contact}\n"
+            f"Domaine  : {demande.get_domaine_display() if demande.domaine else 'N/A'}\n\n"
+            f"Admin    : https://api.visiontech.vision/admin/stages/demandestage/{demande.pk}/change/"
         ),
         from_email=settings.DEFAULT_FROM_EMAIL,
         recipient_list=[settings.DEFAULT_FROM_EMAIL],
@@ -118,36 +117,31 @@ def send_confirmation_email(demande):
 
 
 def send_status_update_email(demande):
-    """Email envoyé quand le statut change."""
     suivi_url = f"{FRONTEND_URL}/stages/mes-demandes"
     color     = STATUT_COLORS.get(demande.statut, '#3b82f6')
     label     = STATUT_LABELS.get(demande.statut, demande.get_statut_display())
 
     if demande.statut == 'accepte':
-        icon    = '🎉'
+        icon     = '&#127881;'
         headline = f"Félicitations {demande.prenom} ! Votre demande est acceptée"
         intro    = (
             "Nous avons le plaisir de vous informer que votre demande de stage a été "
-            "<strong style='color:#22c55e'>acceptée</strong>. "
-            "Notre équipe prendra contact avec vous très prochainement pour les détails pratiques."
+            f"<strong style='color:{color}'>acceptée</strong>. "
+            "Notre équipe prendra contact avec vous très prochainement."
         )
     elif demande.statut == 'refuse':
-        icon    = '😔'
+        icon     = '&#128532;'
         headline = "Résultat de votre demande de stage"
         intro    = (
-            "Nous avons étudié votre dossier avec la plus grande attention. "
-            "Malheureusement, nous ne sommes pas en mesure de donner suite à votre demande pour le moment. "
-            "Nous vous encourageons à repostuler lors de la prochaine session."
+            "Nous avons étudié votre dossier avec attention. "
+            "Malheureusement, nous ne sommes pas en mesure de donner suite à votre demande pour le moment."
         )
     elif demande.statut == 'en_etude':
-        icon    = '🔍'
+        icon     = '&#128269;'
         headline = "Votre dossier est en cours d'examen"
-        intro    = (
-            "Bonne nouvelle ! Votre dossier est actuellement examiné par notre équipe. "
-            "Nous reviendrons vers vous très prochainement."
-        )
+        intro    = "Bonne nouvelle ! Votre dossier est actuellement examiné par notre équipe."
     else:
-        icon    = '📋'
+        icon     = '&#128203;'
         headline = "Mise à jour de votre demande de stage"
         intro    = "Le statut de votre demande a été mis à jour."
 
@@ -161,10 +155,7 @@ def send_status_update_email(demande):
         </div>
         """
 
-    header = f"""
-      <div style="font-size:36px;margin-bottom:8px">{icon}</div>
-      <h1 style="color:#fff;margin:0;font-size:20px;font-weight:800">VisionTech SARL</h1>
-    """
+    header = f'<p style="color:rgba(255,255,255,0.85);margin:4px 0 0;font-size:22px">{icon}</p>'
 
     body = f"""
       <h2 style="color:#0f172a;font-size:18px;margin:0 0 14px">{headline}</h2>
@@ -182,19 +173,16 @@ def send_status_update_email(demande):
         <a href="{suivi_url}"
            style="display:inline-block;padding:13px 28px;background:linear-gradient(135deg,#1d4ed8,#0ea5e9);
                   color:#fff;text-decoration:none;border-radius:12px;font-weight:700;font-size:14px">
-          📊 Voir le détail de ma demande
+          &#128202; Voir mes demandes
         </a>
       </div>
     """
 
-    subject = f"{icon} {headline} — VisionTech SARL"
-    html    = _base_html(header, body)
-    text    = f"{headline}. Statut : {label}. Voir : {suivi_url}"
-
     msg = EmailMultiAlternatives(
-        subject=subject, body=text,
+        subject=f"{headline} — VisionTech SARL",
+        body=f"{headline}. Statut : {label}. Voir : {suivi_url}",
         from_email=settings.DEFAULT_FROM_EMAIL,
         to=[demande.email_contact],
     )
-    msg.attach_alternative(html, "text/html")
+    msg.attach_alternative(_base_html(header, body), "text/html")
     msg.send()

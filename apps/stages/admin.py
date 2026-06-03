@@ -15,11 +15,11 @@ STATUT_COLORS = {
 class DemandeStageAdmin(admin.ModelAdmin):
 
     list_display  = [
-        'prenom', 'nom', 'email_contact', 'type_stage_badge',
+        'prenom', 'nom', 'email_contact', 'profil_badge',
         'domaine_badge', 'date_debut', 'date_fin',
         'statut_badge', 'created_at',
     ]
-    list_filter   = ['statut', 'type_stage', 'domaine', 'created_at']
+    list_filter   = ['statut', 'profil', 'domaine', 'created_at']
     search_fields = ['nom', 'prenom', 'email_contact']
     readonly_fields = ['created_at', 'updated_at']
     ordering      = ['-created_at']
@@ -29,10 +29,10 @@ class DemandeStageAdmin(admin.ModelAdmin):
             'fields': ('user', 'prenom', 'nom', 'telephone', 'email_contact')
         }),
         ('🎓 Stage souhaité', {
-            'fields': ('type_stage', 'domaine', 'date_debut', 'date_fin')
+            'fields': ('profil', 'domaine', 'date_debut', 'date_fin')
         }),
         ('📄 Documents', {
-            'fields': ('cni_recto', 'cni_verso', 'carte_etudiant', 'certificat_scolarite', 'cv')
+            'fields': ('certificat_scolarite', 'lettre_responsable', 'carte_etudiant', 'cni_recto', 'cni_verso', 'cv')
         }),
         ('✉️ Motivation', {
             'fields': ('lettre_motivation',)
@@ -58,19 +58,19 @@ class DemandeStageAdmin(admin.ModelAdmin):
         )
     statut_badge.short_description = 'Statut'
 
-    def type_stage_badge(self, obj):
+    def profil_badge(self, obj):
         colors = {
-            'vacances':         '#0ea5e9',
-            'pre_emploi':       '#8b5cf6',
-            'perfectionnement': '#10b981',
+            'eleve':               '#0ea5e9',
+            'etudiant':            '#8b5cf6',
+            'chomeur_travailleur': '#10b981',
         }
-        color = colors.get(obj.type_stage, '#64748b')
+        color = colors.get(obj.profil, '#64748b')
         return format_html(
             '<span style="padding:2px 8px;border-radius:6px;background:{0}20;'
             'color:{0};font-size:12px;font-weight:600">{1}</span>',
-            color, obj.get_type_stage_display()
+            color, obj.get_profil_display()
         )
-    type_stage_badge.short_description = 'Type'
+    profil_badge.short_description = 'Profil'
 
     def domaine_badge(self, obj):
         if not obj.domaine:

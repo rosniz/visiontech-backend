@@ -24,8 +24,7 @@ class RegisterSerializer(serializers.Serializer):
     def create(self, validated_data):
         email = validated_data['email']
         return User.objects.create_user(
-            username=email,
-            email=email,
+            username=email, email=email,
             password=validated_data['password'],
         )
 
@@ -37,24 +36,32 @@ class DemandeStageCreateSerializer(serializers.ModelSerializer):
         model  = DemandeStage
         fields = [
             'nom', 'prenom', 'telephone', 'email_contact',
-            'type_stage', 'domaine', 'date_debut', 'date_fin',
+            'profil', 'domaine', 'date_debut', 'date_fin',
             'lettre_motivation',
-            'cni_recto', 'cni_verso', 'carte_etudiant', 'certificat_scolarite',
-            'cv',
+            'certificat_scolarite', 'lettre_responsable', 'carte_etudiant',
+            'cni_recto', 'cni_verso', 'cv',
         ]
 
     def validate(self, data):
-        t = data.get('type_stage')
+        profil = data.get('profil')
 
-        if t == 'vacances':
-            has_cni       = data.get('cni_recto') and data.get('cni_verso')
-            has_etudiant  = data.get('carte_etudiant') and data.get('certificat_scolarite')
-            if not has_cni and not has_etudiant:
+        if profil == 'eleve':
+            if not data.get('certificat_scolarite'):
                 raise serializers.ValidationError(
-                    'Pour un stage de vacances, fournissez CNI (recto+verso) OU carte étudiant + certificat de scolarité.'
+                    {'certificat_scolarite': 'Le certificat de scolarité est obligatoire pour les élèves.'}
                 )
 
-        if t in ('pre_emploi', 'perfectionnement'):
+        if profil == 'etudiant':
+            if not data.get('certificat_scolarite'):
+                raise serializers.ValidationError(
+                    {'certificat_scolarite': 'Le certificat de scolarité est obligatoire pour les étudiants.'}
+                )
+            if not data.get('lettre_responsable'):
+                raise serializers.ValidationError(
+                    {'lettre_responsable': 'La lettre du responsable est obligatoire pour les étudiants.'}
+                )
+
+        if profil == 'chomeur_travailleur':
             if not data.get('cv'):
                 raise serializers.ValidationError({'cv': 'Le CV est obligatoire.'})
             if not (data.get('cni_recto') and data.get('cni_verso')):
@@ -68,25 +75,32 @@ class DemandeStageCreateSerializer(serializers.ModelSerializer):
 
 
 class DemandeStageListSerializer(serializers.ModelSerializer):
-    type_stage_display = serializers.CharField(source='get_type_stage_display', read_only=True)
-    statut_display     = serializers.CharField(source='get_statut_display',     read_only=True)
+    profil_display  = serializers.CharField(source='get_profil_display',    read_only=True)
+    domaine_display = serializers.CharField(source='get_domaine_display',    read_only=True)
+    statut_display  = serializers.CharField(source='get_statut_display',     read_only=True)
 
     class Meta:
         model  = DemandeStage
         fields = [
-            'id', 'type_stage', 'type_stage_display',
+            'id', 'prenom', 'nom', 'email_contact',
+            'profil', 'profil_display',
+            'domaine', 'domaine_display',
+            'date_debut', 'date_fin',
             'statut', 'statut_display',
             'commentaire_admin',
             'created_at', 'updated_at',
         ]
 
 
-class DemandeStageDetailSerializer(serializers.ModelSerializer):
-    type_stage_display = serializers.CharField(source='get_type_stage_display', read_only=True)
-    domaine_display    = serializers.CharField(source='get_domaine_display',     read_only=True)
-    statut_display     = serializers.CharField(source='get_statut_display',      read_only=True)
+class DemandeStageDetailSerializer(DemandeStageListSerializer):
+    class Meta(DemandeStageListSerializer.Meta):
+        fields = DemandeStageListSerializer.Meta.fields + [
+            'telephone', 'lettre_motivation',
+            'certificat_scolarite', 'lettre_responsable', 'carte_etudiant',
+            'cni_recto', 'cni_verso', 'cv',
+        ]
 
-    class Meta:
-        model  = DemandeStage
-        exclude = ['user']
-        read_only_fields = [f.name for f in DemandeStage._meta.get_fields() if hasattr(f, 'name')]
+
+class DecisionSerializer(serializers.Serializer):
+    statut            = serializers.ChoiceField(choices=['accepte', 'refuse', 'en_etude'])
+    commentaire_admin = serializers.CharField(allow_blank=True, default='')
