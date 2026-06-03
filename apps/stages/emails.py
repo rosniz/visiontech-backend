@@ -39,7 +39,7 @@ def _base_html(header_content, body_content):
 
 def send_confirmation_email(demande):
     """Email envoyé au candidat après soumission."""
-    suivi_url = f"{FRONTEND_URL}/stages/suivi?token={demande.token}"
+    suivi_url = f"{FRONTEND_URL}/stages/mes-demandes"
 
     header = """
       <h1 style="color:#fff;margin:0;font-size:22px;font-weight:800">VisionTech SARL</h1>
@@ -68,7 +68,7 @@ def send_confirmation_email(demande):
           <tr>
             <td style="padding:5px 0;color:#64748b">Période souhaitée</td>
             <td style="padding:5px 0;color:#0f172a;font-weight:600">
-              {demande.date_debut.strftime('%d/%m/%Y')} → {demande.date_fin.strftime('%d/%m/%Y')}
+              {demande.date_debut.strftime('%d/%m/%Y') if demande.date_debut else 'Non précisée'} → {demande.date_fin.strftime('%d/%m/%Y') if demande.date_fin else 'Non précisée'}
             </td>
           </tr>
         </table>
@@ -84,8 +84,7 @@ def send_confirmation_email(demande):
       </div>
 
       <p style="color:#94a3b8;font-size:12px;text-align:center;margin:0">
-        Conservez ce lien pour suivre l'état de votre dossier.<br>
-        Token : <code style="background:#f1f5f9;padding:2px 8px;border-radius:6px;color:#475569;font-size:11px">{demande.token}</code>
+        Connectez-vous à votre espace pour suivre l'état de votre dossier.
       </p>
     """
 
@@ -120,7 +119,7 @@ def send_confirmation_email(demande):
 
 def send_status_update_email(demande):
     """Email envoyé quand le statut change."""
-    suivi_url = f"{FRONTEND_URL}/stages/suivi?token={demande.token}"
+    suivi_url = f"{FRONTEND_URL}/stages/mes-demandes"
     color     = STATUT_COLORS.get(demande.statut, '#3b82f6')
     label     = STATUT_LABELS.get(demande.statut, demande.get_statut_display())
 
