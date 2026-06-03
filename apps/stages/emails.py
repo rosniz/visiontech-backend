@@ -62,8 +62,8 @@ def send_confirmation_email(demande):
             <td style="padding:5px 0;color:#0f172a;font-weight:600">{demande.get_domaine_display()}</td>
           </tr>
           <tr>
-            <td style="padding:5px 0;color:#64748b">Niveau</td>
-            <td style="padding:5px 0;color:#0f172a;font-weight:600">{demande.get_niveau_etude_display()}</td>
+            <td style="padding:5px 0;color:#64748b">Type</td>
+            <td style="padding:5px 0;color:#0f172a;font-weight:600">{demande.get_type_stage_display()}</td>
           </tr>
           <tr>
             <td style="padding:5px 0;color:#64748b">Période souhaitée</td>

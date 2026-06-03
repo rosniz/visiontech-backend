@@ -1,7 +1,7 @@
 from django.contrib.auth.models import User
-from django.contrib.auth import authenticate
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
 
 
@@ -28,9 +28,12 @@ class EmailTokenObtainSerializer(TokenObtainPairSerializer):
         if not user.is_active:
             raise serializers.ValidationError({'email': 'Ce compte est désactivé.'})
 
-        data = super().validate({'username': user.username, 'password': password})
-        data['email'] = user.email
-        return data
+        refresh = RefreshToken.for_user(user)
+        return {
+            'refresh': str(refresh),
+            'access':  str(refresh.access_token),
+            'email':   user.email,
+        }
 
 
 class EmailTokenObtainView(TokenObtainPairView):
