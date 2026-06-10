@@ -11,10 +11,11 @@ class Realisation(models.Model):
 
     CATEGORIE_CHOICES = [
     ('developpement', 'Développement Web'),
+    ('mobile', 'Application Mobile'),
     ('formation', 'Formation & Atelier'),
     ('conseil', 'Conseil & Stratégie'),
-    ('automatisation','IA & Automatisation')  
-    ]   
+    ('automatisation','IA & Automatisation')
+    ]
 
 
     categorie = models.CharField(
