@@ -32,6 +32,12 @@ DB_KEYWORDS = {
         'technologie', 'réussi', 'success', 'case study', 'achievement',
         'avez-vous déjà', 'avez vous fait', 'montrez', 'exemples',
     ],
+    'stages': [
+        'stage', 'stages', 'stagiaire', 'stagiaires', 'internship', 'intern',
+        'candidature', 'postuler', 'candidater', 'lettre de motivation',
+        'vacances', 'pré-emploi', 'preemploi', 'pre-emploi', 'perfectionnement',
+        'apply', 'application', 'cv',
+    ],
 }
 
 SYSTEM_PROMPT = """Tu es l'assistant virtuel de VisionTech SARL, une entreprise basée à Bafoussam, Cameroun.
@@ -40,6 +46,7 @@ VisionTech SARL propose :
 1. Des FORMATIONS en IA et technologie (voir données [DONNÉES] pour les détails exacts)
 2. Des SERVICES de conception IA sur-mesure (chatbots, vision par ordinateur, automatisation, ML)
 3. Des RÉALISATIONS/PROJETS clients (voir données [DONNÉES] pour les exemples)
+4. Des STAGES (vacances, pré-emploi, perfectionnement) pour élèves, étudiants, chômeurs et travailleurs (voir données [DONNÉES])
 
 Localisation : Bafoussam, Région de l'Ouest, Cameroun.
 Contact WhatsApp : +237 674 55 49 47
@@ -49,9 +56,10 @@ RÈGLES ABSOLUES :
 2. Quand des données [DONNÉES] sont fournies, utilise-les DIRECTEMENT pour répondre — cite les vrais titres, prix, durées
 3. Si aucune donnée n'est fournie pour une question précise, dis honnêtement que tu n'as pas l'info et propose de contacter l'équipe
 4. Ne dis JAMAIS que VisionTech ne propose pas de formations — nous en proposons
-5. Si la demande nécessite un devis ou une démo, dis exactement : "Je vais vous mettre en contact avec un de nos conseillers."
-6. Sois concis : 3-4 phrases max
-7. Prix toujours en FCFA"""
+5. Pour une demande de stage, oriente toujours le candidat vers la page /stages du site pour créer un compte et soumettre sa candidature en ligne
+6. Si la demande nécessite un devis ou une démo, dis exactement : "Je vais vous mettre en contact avec un de nos conseillers."
+7. Sois concis : 3-4 phrases max
+8. Prix toujours en FCFA"""
 
 TRANSFER_KEYWORDS = [
     'humain', 'agent', 'conseiller', 'parler à quelqu\'un',
@@ -95,7 +103,7 @@ def detect_needed_data(text):
     general_keywords = ['que proposez', 'que faites', 'votre offre', 'vos offres',
                         'what do you', 'what can you', 'tout', 'toutes']
     if any(normalize(kw) in text_norm for kw in general_keywords):
-        needed = {'formations', 'services', 'realisations'}
+        needed = {'formations', 'services', 'realisations', 'stages'}
 
     return needed
 
@@ -260,6 +268,22 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     context_parts.append('\n'.join(lines))
             except Exception:
                 pass
+
+        if 'stages' in needed:
+            lines = [
+                "🎓 STAGES CHEZ VISIONTECH :",
+                "• Types de stage : Stage de vacances, Pré-emploi (validation BTS/HND), Perfectionnement",
+                "• Domaines proposés : Développement Web, Développement Mobile, IA & Data Science, "
+                "Marketing Digital, Design UX/UI, Autre",
+                "• Profils acceptés : Élève (Première/Terminale/Bac), Étudiant (validation BTS/HND), "
+                "Chômeur ou travailleur en reconversion",
+                "• Documents à fournir : lettre de motivation (obligatoire pour tous) + selon le profil "
+                "(certificat de scolarité, lettre du responsable, carte étudiant, CV, CNI recto/verso)",
+                "• Pour postuler : se rendre sur la page /stages du site, créer un compte et remplir "
+                "le formulaire de candidature en ligne. Le suivi de la demande se fait ensuite "
+                "directement depuis l'espace candidat.",
+            ]
+            context_parts.append('\n'.join(lines))
 
         if 'realisations' in needed:
             try:
