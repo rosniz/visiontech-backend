@@ -13,6 +13,11 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-change-this-in-production'
 DEBUG = os.getenv('DEBUG', 'False') == 'True'
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost').split(',')
 
+# Permet à Django de détecter le HTTPS d'origine derrière un proxy/reverse-proxy
+# (ex: Nginx) qui transmet l'en-tête X-Forwarded-Proto. Sans cela,
+# request.build_absolute_uri() (utilisé pour les image_url) renvoie des URLs en http://.
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
 # Applications
 INSTALLED_APPS = [
     'django.contrib.admin',
