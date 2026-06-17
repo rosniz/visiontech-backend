@@ -52,8 +52,7 @@ services:
     container_name: visiontech_nginx
     restart: always
     ports:
-      - "80:80"
-      - "443:443"
+      - "127.0.0.1:8080:80"
     volumes:
       - ./nginx/visiontech.vision.conf:/etc/nginx/conf.d/default.conf:ro
       - ./nginx/tcf-express.com.conf:/etc/nginx/conf.d/tcf-express.com.conf:ro
