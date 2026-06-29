@@ -1,8 +1,14 @@
 from django.contrib import admin
 from django.urls import path, include
+from django.contrib.sitemaps.views import sitemap
 from rest_framework import permissions
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
+
+from apps.blog.feeds import ArticlesRSSFeed, ArticlesAtomFeed
+from apps.blog.sitemaps import BlogSitemap
+
+sitemaps = {'blog': BlogSitemap}
 
 # Configuration Swagger
 schema_view = get_schema_view(
@@ -30,7 +36,13 @@ urlpatterns = [
 
     path('api/chat/', include('apps.chat.urls')),
     path('api/v1/stages/', include('apps.stages.urls')),
-    
+    path('api/v1/blog/', include('apps.blog.urls')),
+
+    # SEO : sitemap + flux RSS/Atom du blog
+    path('sitemap.xml', sitemap, {'sitemaps': sitemaps}, name='django.contrib.sitemaps.views.sitemap'),
+    path('blog/rss/', ArticlesRSSFeed(), name='blog-rss'),
+    path('blog/atom/', ArticlesAtomFeed(), name='blog-atom'),
+
     # Documentation Swagger
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
     path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
