@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'apps.chat',
     'apps.stages',
     'apps.blog',
+    'apps.finances',
     'django.contrib.sites',
     'django.contrib.sitemaps',
 ]

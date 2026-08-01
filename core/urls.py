@@ -37,6 +37,7 @@ urlpatterns = [
     path('api/chat/', include('apps.chat.urls')),
     path('api/v1/stages/', include('apps.stages.urls')),
     path('api/v1/blog/', include('apps.blog.urls')),
+    path('api/v1/finances/', include('apps.finances.urls')),
 
     # SEO : sitemap + flux RSS/Atom du blog
     path('sitemap.xml', sitemap, {'sitemaps': sitemaps}, name='django.contrib.sitemaps.views.sitemap'),
