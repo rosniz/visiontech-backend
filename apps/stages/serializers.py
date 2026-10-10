@@ -1,5 +1,8 @@
 from django.contrib.auth.models import User
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError as DjangoValidationError
 from rest_framework import serializers
+from core.uploads import valider_document
 from .models import DemandeStage
 
 
@@ -7,7 +10,7 @@ from .models import DemandeStage
 
 class RegisterSerializer(serializers.Serializer):
     email    = serializers.EmailField()
-    password = serializers.CharField(min_length=6, write_only=True)
+    password = serializers.CharField(min_length=8, write_only=True)
     confirm  = serializers.CharField(write_only=True)
 
     def validate_email(self, value):
@@ -19,6 +22,10 @@ class RegisterSerializer(serializers.Serializer):
     def validate(self, data):
         if data['password'] != data['confirm']:
             raise serializers.ValidationError({'confirm': 'Les mots de passe ne correspondent pas.'})
+        try:
+            validate_password(data['password'], User(username=data['email'], email=data['email']))
+        except DjangoValidationError as e:
+            raise serializers.ValidationError({'password': list(e.messages)})
         return data
 
     def create(self, validated_data):
@@ -41,6 +48,10 @@ class DemandeStageCreateSerializer(serializers.ModelSerializer):
             'certificat_scolarite', 'lettre_responsable', 'carte_etudiant',
             'cni_recto', 'cni_verso', 'cv',
         ]
+        extra_kwargs = {
+            champ: {'validators': [valider_document]}
+            for champ in ('certificat_scolarite', 'lettre_responsable', 'carte_etudiant', 'cni_recto', 'cni_verso', 'cv')
+        }
 
     def validate(self, data):
         profil = data.get('profil')

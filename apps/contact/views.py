@@ -6,6 +6,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from .models import Contact
 from .serializers import ContactSerializer
 from .emails import send_contact_emails
+from core.throttling import ContactThrottle
 
 
 class ContactViewSet(viewsets.ModelViewSet):
@@ -22,6 +23,17 @@ class ContactViewSet(viewsets.ModelViewSet):
     search_fields = ['nom', 'email', 'sujet', 'message']
     ordering_fields = ['date', 'nom']
     ordering = ['-date']
+
+    throttle_classes = [ContactThrottle]
+
+    def create(self, request, *args, **kwargs):
+        # Pot de miel : champ invisible pour un humain, rempli par les robots.
+        # On répond « succès » sans rien enregistrer ni envoyer d'email.
+        if request.data.get('website'):
+            import logging
+            logging.getLogger('security').warning('Spam contact bloqué (pot de miel) : %s', request.data.get('email'))
+            return Response({'status': 'ok'}, status=status.HTTP_201_CREATED)
+        return super().create(request, *args, **kwargs)
 
     def get_permissions(self):
         # Seul l'envoi d'un message est public ; la lecture et la gestion sont réservées aux admins

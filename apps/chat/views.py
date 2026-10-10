@@ -1,23 +1,25 @@
 # ═══════════════════════════════════════════════════
 # chat/views.py
 # ═══════════════════════════════════════════════════
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.decorators import api_view, permission_classes, throttle_classes
+from rest_framework.permissions import IsAdminUser, AllowAny
 from rest_framework.response import Response
 from rest_framework import status
 from .models import Conversation, Message
 from .serializers import ConversationSerializer, MessageSerializer
 import uuid
+from core.throttling import ChatStartThrottle
 
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
+@throttle_classes([ChatStartThrottle])
 def start_conversation(request):
     """Crée ou récupère une session de chat."""
     session_id = request.data.get('session_id') or str(uuid.uuid4())
     conv, created = Conversation.objects.get_or_create(session_id=session_id)
     if 'visitor_name' in request.data:
-        conv.visitor_name = request.data['visitor_name']
+        conv.visitor_name = str(request.data['visitor_name'])[:100]
         conv.save()
     return Response({
         'session_id': str(conv.session_id),
@@ -27,7 +29,7 @@ def start_conversation(request):
 
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAdminUser])
 def list_conversations(request):
     """Liste toutes les conversations (admin/agent)."""
     status_filter = request.query_params.get('status')
@@ -39,7 +41,7 @@ def list_conversations(request):
 
 
 @api_view(['GET', 'PATCH'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAdminUser])
 def conversation_detail(request, session_id):
     """Détail d'une conversation + changement de statut."""
     try:
@@ -60,7 +62,7 @@ def conversation_detail(request, session_id):
 
 
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAdminUser])
 def agent_send_message(request, session_id):
     """Permet à un agent humain d'envoyer un message."""
     try:
@@ -84,7 +86,7 @@ def agent_send_message(request, session_id):
 
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAdminUser])
 def chat_stats(request):
     """Statistiques pour le dashboard agent."""
     return Response({

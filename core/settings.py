@@ -11,6 +11,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Security
 SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-change-this-in-production')
 DEBUG = os.getenv('DEBUG', 'False') == 'True'
+
+# La clé signe les tokens JWT : avec la clé par défaut (publique sur GitHub),
+# n'importe qui pourrait fabriquer un token administrateur.
+if not DEBUG and (SECRET_KEY.startswith('django-insecure') or len(SECRET_KEY) < 40):
+    raise RuntimeError('SECRET_KEY absente ou trop faible : définissez une clé longue et secrète dans .env')
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost').split(',')
 
 # Permet à Django de détecter le HTTPS d'origine derrière un proxy/reverse-proxy
@@ -42,6 +47,7 @@ INSTALLED_APPS = [
     'apps.stages',
     'apps.blog',
     'apps.finances',
+    'apps.site_config',
     'django.contrib.sites',
     'django.contrib.sitemaps',
 ]
@@ -56,6 +62,7 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'apps.site_config.middleware.MaintenanceMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -136,26 +143,51 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # Default primary key
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# Cache (compteurs anti brute-force, throttling, mode maintenance).
+# Redis est partagé entre les workers ; sinon cache mémoire local (dev).
+REDIS_URL = os.getenv('REDIS_URL', '')
+if REDIS_URL:
+    CACHES = {'default': {'BACKEND': 'django.core.cache.backends.redis.RedisCache', 'LOCATION': REDIS_URL}}
+else:
+    CACHES = {'default': {'BACKEND': 'django.core.cache.backends.locmem.LocMemCache'}}
+
 # REST Framework
 REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 20,
     'DEFAULT_RENDERER_CLASSES': [
         'rest_framework.renderers.JSONRenderer',
-        'rest_framework.renderers.BrowsableAPIRenderer',
-    ],
+    ] + (['rest_framework.renderers.BrowsableAPIRenderer'] if DEBUG else []),
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.AllowAny',
     ],
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ],
+    # Limitation de débit : garde-fou global + règles strictes sur les points sensibles
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle',
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'anon':         os.getenv('THROTTLE_ANON', '120/min'),
+        'user':         os.getenv('THROTTLE_USER', '300/min'),
+        'login':        os.getenv('THROTTLE_LOGIN', '10/min'),
+        'register':     os.getenv('THROTTLE_REGISTER', '5/hour'),
+        'contact':      os.getenv('THROTTLE_CONTACT', '10/hour'),
+        'stage_submit': os.getenv('THROTTLE_STAGE', '10/hour'),
+        'chat_start':   os.getenv('THROTTLE_CHAT', '30/hour'),
+    },
+    # Nombre de proxys devant Django : en production, Nginx de l'hôte (HTTPS) puis
+    # Nginx Docker = 2. L'IP réelle est lue dans X-Forwarded-For sans pouvoir être
+    # falsifiée par le client. Vérifier dans les logs « security » que les IP sont variées.
+    'NUM_PROXIES': int(os.getenv('NUM_PROXIES', '2')),
 }
 
 # JWT
 from datetime import timedelta
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME':  timedelta(days=7),
+    'ACCESS_TOKEN_LIFETIME':  timedelta(hours=int(os.getenv('JWT_ACCESS_HOURS', '24'))),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=30),
     'USER_ID_FIELD': 'id',
     'USER_ID_CLAIM': 'user_id',
@@ -202,6 +234,38 @@ EMAIL_HOST_USER     = os.getenv('EMAIL_HOST_USER', '')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
 EMAIL_TIMEOUT       = int(os.getenv('EMAIL_TIMEOUT', 10))
 DEFAULT_FROM_EMAIL  = os.getenv('DEFAULT_FROM_EMAIL', 'VisionTech SARL <contact@visiontechsarl.com>')
+
+# Durcissement HTTP (production)
+if not DEBUG:
+    SESSION_COOKIE_SECURE   = True
+    CSRF_COOKIE_SECURE      = True
+    SESSION_COOKIE_HTTPONLY = True
+    SECURE_HSTS_SECONDS     = 31536000
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    SECURE_REFERRER_POLICY  = 'strict-origin-when-cross-origin'
+    X_FRAME_OPTIONS         = 'DENY'
+
+# Limites d'upload (Nginx coupe déjà à 20 Mo)
+DATA_UPLOAD_MAX_MEMORY_SIZE   = 10 * 1024 * 1024
+DATA_UPLOAD_MAX_NUMBER_FIELDS = 500
+
+# Documentation API (Swagger) : désactivée en production sauf ENABLE_API_DOCS=True
+ENABLE_API_DOCS = os.getenv('ENABLE_API_DOCS', str(DEBUG)) == 'True'
+
+# Chemin de l'admin Django : à personnaliser en production pour réduire les attaques automatisées
+DJANGO_ADMIN_URL = os.getenv('DJANGO_ADMIN_URL', 'admin/').strip('/') + '/'
+
+# Journal de sécurité (échecs de connexion, spam bloqué, maintenance)
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {'simple': {'format': '[{asctime}] {levelname} {name}: {message}', 'style': '{'}},
+    'handlers': {'console': {'class': 'logging.StreamHandler', 'formatter': 'simple'}},
+    'loggers': {
+        'security':        {'handlers': ['console'], 'level': 'INFO', 'propagate': False},
+        'django.security': {'handlers': ['console'], 'level': 'WARNING', 'propagate': False},
+    },
+}
 
 # Frontend URL (pour les liens dans les emails)
 FRONTEND_URL = os.getenv('FRONTEND_URL', 'https://visiontech.vision')
