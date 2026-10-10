@@ -16,7 +16,7 @@ class RealisationViewSet(viewsets.ModelViewSet):
     serializer_class = RealisationSerializer
     permission_classes = [IsAdminOrReadOnly]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_fields = ['statut', 'client','categorie']
+    filterset_fields = ['statut', 'client', 'categorie', 'en_vedette']
     search_fields = ['titre', 'description', 'client', 'technologies']
-    ordering_fields = ['ordre', 'created_at', 'titre']
+    ordering_fields = ['ordre', 'created_at', 'titre', 'id']
     ordering = ['ordre', '-created_at']

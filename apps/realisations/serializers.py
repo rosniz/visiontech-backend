@@ -6,6 +6,7 @@ class RealisationSerializer(serializers.ModelSerializer):
     """Serializer pour le modèle Realisation"""
 
     image_url = serializers.SerializerMethodField()
+    logo_url = serializers.SerializerMethodField()
     technologies_list = serializers.SerializerMethodField()
     statut_display = serializers.CharField(source='get_statut_display', read_only=True)
     categorie_display = serializers.CharField(source='get_categorie_display', read_only=True)
@@ -27,6 +28,10 @@ class RealisationSerializer(serializers.ModelSerializer):
             'statut',
             'statut_display',
             'ordre',
+            'en_vedette',
+            'accroche',
+            'logo',
+            'logo_url',
             'created_at',
             'updated_at',
         ]
@@ -37,6 +42,12 @@ class RealisationSerializer(serializers.ModelSerializer):
         if obj.image:
             request = self.context.get('request')
             return request.build_absolute_uri(obj.image.url) if request else obj.image.url
+        return None
+
+    def get_logo_url(self, obj):
+        if obj.logo:
+            request = self.context.get('request')
+            return request.build_absolute_uri(obj.logo.url) if request else obj.logo.url
         return None
 
     def get_technologies_list(self, obj):

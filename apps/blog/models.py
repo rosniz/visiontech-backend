@@ -1,31 +1,10 @@
 import re
-from io import BytesIO
-from PIL import Image
-from django.core.files.base import ContentFile
 from django.db import models
 from django.utils.text import slugify
 from django.utils import timezone
 from django.db.models import F
 
-
-def _compresser_image(image_field, max_width=1600, quality=82):
-    """Redimensionne et compresse une image uploadée (in-place sur le champ)."""
-    if not image_field or image_field.name.lower().endswith('.webp'):
-        return
-    try:
-        img = Image.open(image_field)
-        img_format = 'WEBP' if img.format != 'GIF' else 'GIF'
-        if img.mode in ('RGBA', 'P') and img_format == 'WEBP':
-            img = img.convert('RGB')
-        if img.width > max_width:
-            ratio = max_width / float(img.width)
-            img = img.resize((max_width, int(img.height * ratio)), Image.LANCZOS)
-        buffer = BytesIO()
-        img.save(buffer, format=img_format, quality=quality, optimize=True)
-        name = image_field.name.rsplit('.', 1)[0] + '.webp'
-        image_field.save(name, ContentFile(buffer.getvalue()), save=False)
-    except Exception:
-        pass
+from core.images import compresser_image as _compresser_image
 
 
 def _unique_slug(model_cls, base_slug, instance_pk=None):
