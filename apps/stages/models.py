@@ -1,6 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import User
 
+from core.uploads import NomAleatoire
+
 
 class DemandeStage(models.Model):
 
@@ -55,16 +57,16 @@ class DemandeStage(models.Model):
     lettre_motivation = models.TextField(verbose_name='Lettre de motivation')
 
     # Documents élève / étudiant
-    certificat_scolarite  = models.FileField(upload_to='stages/docs/', blank=True, null=True, verbose_name='Certificat de scolarité (PDF)')
-    lettre_responsable    = models.FileField(upload_to='stages/docs/', blank=True, null=True, verbose_name='Lettre du responsable (PDF)')
-    carte_etudiant        = models.ImageField(upload_to='stages/docs/', blank=True, null=True, verbose_name='Carte étudiant')
+    certificat_scolarite  = models.FileField(upload_to=NomAleatoire('stages/docs/'), blank=True, null=True, verbose_name='Certificat de scolarité (PDF)')
+    lettre_responsable    = models.FileField(upload_to=NomAleatoire('stages/docs/'), blank=True, null=True, verbose_name='Lettre du responsable (PDF)')
+    carte_etudiant        = models.ImageField(upload_to=NomAleatoire('stages/docs/'), blank=True, null=True, verbose_name='Carte étudiant')
 
     # Documents CNI (tous profils)
-    cni_recto = models.ImageField(upload_to='stages/cni/', blank=True, null=True, verbose_name='CNI recto')
-    cni_verso = models.ImageField(upload_to='stages/cni/', blank=True, null=True, verbose_name='CNI verso')
+    cni_recto = models.ImageField(upload_to=NomAleatoire('stages/cni/'), blank=True, null=True, verbose_name='CNI recto')
+    cni_verso = models.ImageField(upload_to=NomAleatoire('stages/cni/'), blank=True, null=True, verbose_name='CNI verso')
 
     # Documents chômeur / travailleur
-    cv = models.FileField(upload_to='stages/cv/', blank=True, null=True, verbose_name='CV (PDF)')
+    cv = models.FileField(upload_to=NomAleatoire('stages/cv/'), blank=True, null=True, verbose_name='CV (PDF)')
 
     # Gestion admin
     statut            = models.CharField(max_length=20, choices=STATUT_CHOICES, default='en_attente', verbose_name='Statut')

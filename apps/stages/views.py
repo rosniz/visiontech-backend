@@ -14,12 +14,14 @@ from .serializers import (
 )
 from .emails import send_confirmation_email, send_status_update_email
 from rest_framework_simplejwt.tokens import RefreshToken
+from core.throttling import RegisterThrottle, StageSubmitThrottle
 
 
 # ── Auth ──────────────────────────────────────────────────────────────────────
 
 class RegisterView(APIView):
     permission_classes = [AllowAny]
+    throttle_classes   = [RegisterThrottle]
 
     def post(self, request):
         serializer = RegisterSerializer(data=request.data)
@@ -37,6 +39,7 @@ class RegisterView(APIView):
 
 class MesDemandesView(generics.ListCreateAPIView):
     permission_classes = [IsAuthenticated]
+    throttle_classes   = [StageSubmitThrottle]
 
     def get_serializer_class(self):
         return DemandeStageCreateSerializer if self.request.method == 'POST' else DemandeStageListSerializer

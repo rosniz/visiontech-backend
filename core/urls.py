@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib import admin
 from django.urls import path, include
 from django.contrib.sitemaps.views import sitemap
@@ -26,7 +27,7 @@ schema_view = get_schema_view(
 
 urlpatterns = [
     # Admin
-    path('admin/', admin.site.urls),
+    path(settings.DJANGO_ADMIN_URL, admin.site.urls),
     
     # API v1
     path('api/v1/formations/', include('apps.formations.urls')),
@@ -38,14 +39,18 @@ urlpatterns = [
     path('api/v1/stages/', include('apps.stages.urls')),
     path('api/v1/blog/', include('apps.blog.urls')),
     path('api/v1/finances/', include('apps.finances.urls')),
+    path('api/v1/site/', include('apps.site_config.urls')),
 
     # SEO : sitemap + flux RSS/Atom du blog
     path('sitemap.xml', sitemap, {'sitemaps': sitemaps}, name='django.contrib.sitemaps.views.sitemap'),
     path('blog/rss/', ArticlesRSSFeed(), name='blog-rss'),
     path('blog/atom/', ArticlesAtomFeed(), name='blog-atom'),
-
-    # Documentation Swagger
-    path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
-    path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
-    path('swagger.json', schema_view.without_ui(cache_timeout=0), name='schema-json'),
 ]
+
+# Documentation Swagger : désactivée en production (voir ENABLE_API_DOCS)
+if settings.ENABLE_API_DOCS:
+    urlpatterns += [
+        path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
+        path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
+        path('swagger.json', schema_view.without_ui(cache_timeout=0), name='schema-json'),
+    ]

@@ -18,6 +18,8 @@ class ContactSerializer(serializers.ModelSerializer):
     
     def validate_message(self, value):
         """Validation du message"""
+        if len(value) > 5000:
+            raise serializers.ValidationError("Le message ne peut pas dépasser 5000 caractères")
         if len(value) < 10:
             raise serializers.ValidationError(
                 "Le message doit contenir au moins 10 caractères"

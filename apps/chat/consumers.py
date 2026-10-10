@@ -1,6 +1,8 @@
 # chat/consumers.py
 import json
 import re
+import time
+from collections import deque
 import google.generativeai as genai
 from django.conf import settings
 from channels.generic.websocket import AsyncWebsocketConsumer
@@ -120,6 +122,11 @@ def detect_needed_data(text):
     return needed
 
 
+# Anti-abus : chaque message visiteur peut déclencher un appel Gemini (payant)
+MAX_LONGUEUR_MESSAGE = 1000
+MAX_MESSAGES_PAR_MINUTE = 10
+
+
 class ChatConsumer(AsyncWebsocketConsumer):
 
     async def connect(self):
@@ -127,6 +134,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         self.room_group = f'chat_{self.session_id}'
         self.waiting_for_phone = False
         self.transfer_ack_sent = False
+        self.horodatages = deque()
 
         await self.channel_layer.group_add(self.room_group, self.channel_name)
         await self.accept()
@@ -138,13 +146,33 @@ class ChatConsumer(AsyncWebsocketConsumer):
     async def disconnect(self, close_code):
         await self.channel_layer.group_discard(self.room_group, self.channel_name)
 
-    async def receive(self, text_data):
-        data = json.loads(text_data)
+    def _limite_atteinte(self):
+        maintenant = time.monotonic()
+        while self.horodatages and self.horodatages[0] < maintenant - 60:
+            self.horodatages.popleft()
+        if len(self.horodatages) >= MAX_MESSAGES_PAR_MINUTE:
+            return True
+        self.horodatages.append(maintenant)
+        return False
+
+    async def receive(self, text_data=None, bytes_data=None):
+        try:
+            data = json.loads(text_data or '')
+        except (TypeError, ValueError):
+            return
+        if not isinstance(data, dict):
+            return
         msg_type = data.get('type', 'message')
 
         if msg_type == 'message':
-            user_text = data.get('text', '').strip()
+            user_text = str(data.get('text', '')).strip()
             if not user_text:
+                return
+            if len(user_text) > MAX_LONGUEUR_MESSAGE:
+                await self.send(json.dumps({'type': 'message', 'sender': 'bot', 'text': f'Message trop long ({MAX_LONGUEUR_MESSAGE} caractères maximum).'}))
+                return
+            if self._limite_atteinte():
+                await self.send(json.dumps({'type': 'message', 'sender': 'bot', 'text': 'Vous envoyez trop de messages. Patientez un instant.'}))
                 return
 
             await self.save_message(user_text, 'user')
