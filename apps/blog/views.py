@@ -82,7 +82,8 @@ class ArticleAdminViewSet(viewsets.ModelViewSet):
     ordering         = ['-created_at']
 
     def get_serializer_class(self):
-        return ArticleWriteSerializer if self.action in ('create', 'update', 'partial_update') else ArticleDetailSerializer
+        # Liste légère ; le détail renvoie les champs bruts (Markdown, SEO) pour l'édition
+        return ArticleListSerializer if self.action == 'list' else ArticleWriteSerializer
 
 
 class CategorieAdminViewSet(viewsets.ModelViewSet):

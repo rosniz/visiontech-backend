@@ -86,7 +86,7 @@ class AdminDemandesListView(generics.ListAPIView):
         return qs
 
 
-class AdminDemandeDetailView(generics.RetrieveAPIView):
+class AdminDemandeDetailView(generics.RetrieveDestroyAPIView):
     permission_classes = [IsAdminUser]
     serializer_class   = DemandeStageDetailSerializer
     queryset           = DemandeStage.objects.all()

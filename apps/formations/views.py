@@ -1,13 +1,14 @@
 from rest_framework import viewsets
-from rest_framework.permissions import AllowAny
+from core.permissions import IsAdminOrReadOnly
 from .models import Formation
 from .serializers import FormationListSerializer, FormationDetailSerializer
 
 class FormationViewSet(viewsets.ModelViewSet):
     queryset = Formation.objects.all()
-    permission_classes = [AllowAny]
-    
+    permission_classes = [IsAdminOrReadOnly]
+
     def get_serializer_class(self):
-        if self.action == 'retrieve':
-            return FormationDetailSerializer
-        return FormationListSerializer
+        # La liste reste légère ; le détail et l'écriture exposent tous les champs
+        if self.action == 'list':
+            return FormationListSerializer
+        return FormationDetailSerializer

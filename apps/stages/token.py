@@ -33,6 +33,7 @@ class EmailTokenObtainSerializer(TokenObtainPairSerializer):
             'refresh': str(refresh),
             'access':  str(refresh.access_token),
             'email':   user.email,
+            'is_staff': user.is_staff,
         }
 
 
