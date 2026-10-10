@@ -1,6 +1,6 @@
 from rest_framework import viewsets, filters
-from rest_framework.permissions import AllowAny
 from django_filters.rest_framework import DjangoFilterBackend
+from core.permissions import IsAdminOrReadOnly
 from .models import Realisation
 from .serializers import RealisationSerializer
 
@@ -14,7 +14,7 @@ class RealisationViewSet(viewsets.ModelViewSet):
 
     queryset = Realisation.objects.all()
     serializer_class = RealisationSerializer
-    permission_classes = [AllowAny]
+    permission_classes = [IsAdminOrReadOnly]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['statut', 'client','categorie']
     search_fields = ['titre', 'description', 'client', 'technologies']

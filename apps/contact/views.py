@@ -1,7 +1,7 @@
 from rest_framework import viewsets, filters, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAdminUser
 from django_filters.rest_framework import DjangoFilterBackend
 from .models import Contact
 from .serializers import ContactSerializer
@@ -17,12 +17,17 @@ class ContactViewSet(viewsets.ModelViewSet):
     
     queryset = Contact.objects.all()
     serializer_class = ContactSerializer
-    permission_classes = [AllowAny]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['lu']
     search_fields = ['nom', 'email', 'sujet', 'message']
     ordering_fields = ['date', 'nom']
     ordering = ['-date']
+
+    def get_permissions(self):
+        # Seul l'envoi d'un message est public ; la lecture et la gestion sont réservées aux admins
+        if self.action == 'create':
+            return [AllowAny()]
+        return [IsAdminUser()]
 
     def perform_create(self, serializer):
         instance = serializer.save()

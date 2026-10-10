@@ -116,8 +116,10 @@ class ArticleWriteSerializer(serializers.ModelSerializer):
     class Meta:
         model  = Article
         fields = [
-            'titre', 'slug', 'sous_titre', 'extrait', 'contenu', 'image_couverture',
+            'id', 'titre', 'slug', 'sous_titre', 'extrait', 'contenu', 'image_couverture',
             'categorie', 'tags', 'auteur_nom', 'auteur_avatar',
             'statut', 'date_publication', 'mis_en_avant',
             'meta_titre', 'meta_description', 'og_image', 'canonical_url',
+            'temps_lecture', 'vues', 'created_at', 'updated_at',
         ]
+        read_only_fields = ['id', 'temps_lecture', 'vues', 'created_at', 'updated_at']
