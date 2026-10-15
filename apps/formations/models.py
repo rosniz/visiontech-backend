@@ -1,5 +1,7 @@
 from django.db import models
 
+from core.images import compresser_image
+
 class Formation(models.Model):
     """Modèle pour les formations proposées par VisionTech"""
 
@@ -37,3 +39,8 @@ class Formation(models.Model):
     
     def __str__(self):
         return self.titre
+
+    def save(self, *args, **kwargs):
+        # Image servie en WebP redimensionné (les PNG d'origine pèsent ~300 Ko)
+        compresser_image(self.image, max_width=1400)
+        super().save(*args, **kwargs)

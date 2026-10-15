@@ -1,6 +1,8 @@
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 
+from core.images import compresser_image
+
 
 class Service(models.Model):
     """Modèle simplifié pour les services VisionTech"""
@@ -57,3 +59,8 @@ class Service(models.Model):
     
     def __str__(self):
         return self.nom
+
+    def save(self, *args, **kwargs):
+        # Image servie en WebP redimensionné (les PNG d'origine pèsent ~300 Ko)
+        compresser_image(self.image, max_width=1400)
+        super().save(*args, **kwargs)
